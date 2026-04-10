@@ -1,74 +1,18 @@
-import sqlite3
+from pymongo import MongoClient
 
 def conectar():
-    return sqlite3.connect("diario.db")
+    client = MongoClient("SUA_STRING_MONGODB")
+    db = client["diario_escolar"]
+    return db
 
 
 def criar_banco():
+    db = conectar()
 
-    conn = conectar()
-    c = conn.cursor()
+    db["professores"]
+    db["alunos"]
+    db["conteudos"]
+    db["presenca"]
+    db["notas"]
 
-    # PROFESSOR
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS professores (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        usuario TEXT
-    )
-    """)
-
-    # ALUNOS
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS alunos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        professor TEXT,
-        disciplina TEXT,
-        turma TEXT,
-        aluno TEXT
-    )
-    """)
-
-    # CONTEUDOS
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS conteudos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        professor TEXT,
-        disciplina TEXT,
-        turma TEXT,
-        data TEXT,
-        conteudo TEXT
-    )
-    """)
-
-    # PRESENCA
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS presenca (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        professor TEXT,
-        disciplina TEXT,
-        turma TEXT,
-        data TEXT,
-        aluno TEXT,
-        valor TEXT
-    )
-    """)
-
-    # NOTAS (NOVO MODELO)
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS notas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        professor TEXT,
-        disciplina TEXT,
-        turma TEXT,
-        bimestre TEXT,
-        aluno TEXT,
-        p1 REAL,
-        p2 REAL,
-        trabalho REAL,
-        participacao REAL,
-        tarefa REAL
-    )
-    """)
-
-    conn.commit()
-    conn.close()
+    print("Banco MongoDB conectado com sucesso")
