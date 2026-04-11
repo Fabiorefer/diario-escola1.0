@@ -1,22 +1,16 @@
 
-from pymongo import MongoClient
-import json
+from flask import Flask, jsonify
 
-client = MongoClient("SUA_STRING_MONGODB")
-db = client["diario_escolar"]
+app = Flask(__name__)
 
-def handler(request):
+@app.route("/")
+def home():
+    return "API online"
 
-    if request.path == "/api/alunos":
-        alunos = list(db.alunos.find({}, {"_id":0}))
+@app.route("/alunos")
+def alunos():
+    return jsonify({"status":"ok"})
 
-        return {
-            "statusCode": 200,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps(alunos)
-        }
-
-    return {
-        "statusCode": 200,
-        "body": "API Diario Escolar Online"
-    }
+# Vercel precisa disso
+def handler(request, response):
+    return app(request.environ, response.start_response)
