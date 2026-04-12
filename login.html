@@ -23,14 +23,30 @@ box-shadow:0 0 10px rgba(0,0,0,0.2);
 
 input{
 width:90%;
-padding:8px;
-margin:5px;
+padding:10px;
+margin:8px;
+border:1px solid #ccc;
+border-radius:5px;
 }
 
 button{
-padding:8px;
+padding:10px;
 margin:5px;
 width:95%;
+background:#4CAF50;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{
+background:#45a049;
+}
+
+.erro{
+color:red;
+font-size:14px;
 }
 </style>
 
@@ -42,19 +58,23 @@ width:95%;
 
 <h2>Diário de Classe</h2>
 
+{% if erro %}
+<p class="erro">{{ erro }}</p>
+{% endif %}
+
 <form method="POST">
 
-<input name="usuario" placeholder="Usuário">
+<input name="usuario" placeholder="Usuário" required>
 
-<input name="senha" type="password" placeholder="Senha">
+<input name="senha" type="password" placeholder="Senha" required>
 
 <button type="submit">Entrar</button>
 
 </form>
 
-<a href="/criar">
-<button>Criar Usuário</button>
-</a>
+<br>
+
+<a href="/criar">Criar Usuário</a>
 
 </div>
 
