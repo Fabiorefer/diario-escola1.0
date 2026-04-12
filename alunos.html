@@ -23,17 +23,12 @@ border-radius:8px;
 box-shadow:0 0 10px rgba(0,0,0,0.2);
 }
 
-select{
+select,input{
 width:100%;
-padding:8px;
-font-size:15px;
-margin-bottom:5px;
-}
-
-input{
-width:95%;
-padding:8px;
-margin-top:10px;
+padding:10px;
+margin-top:8px;
+border:1px solid #ccc;
+border-radius:5px;
 }
 
 button{
@@ -72,6 +67,10 @@ padding:8px;
 border-radius:5px;
 }
 
+.sucesso{
+color:green;
+}
+
 </style>
 
 </head>
@@ -82,12 +81,16 @@ border-radius:5px;
 
 <h2>Alunos</h2>
 
+{% if sucesso %}
+<p class="sucesso">Aluno cadastrado com sucesso!</p>
+{% endif %}
+
 <form method="POST">
 
 <select name="disciplina" required>
 <option value="">Disciplina</option>
 {% for d in disciplinas %}
-<option value="{{ d }}">{{ d }}</option>
+<option value="{{ d.disciplina }}">{{ d.disciplina }}</option>
 {% endfor %}
 </select>
 
@@ -109,16 +112,16 @@ border-radius:5px;
 <h3>Alunos cadastrados</h3>
 
 <ul>
-{% for d,t,a in alunos %}
-<li>{{ d }} - {{ t }} - {{ a }}</li>
+{% for a in alunos %}
+<li>{{ a.disciplina }} - {{ a.turma }} - {{ a.aluno }}</li>
 {% endfor %}
 </ul>
 
 <br>
 
-<a href="/menu">
-<button class="voltar">Voltar</button>
-</a>
+<button onclick="window.location.href='/menu'" class="voltar">
+Voltar
+</button>
 
 </div>
 
