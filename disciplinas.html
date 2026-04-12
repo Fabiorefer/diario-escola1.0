@@ -23,17 +23,20 @@ border-radius:8px;
 box-shadow:0 0 10px rgba(0,0,0,0.2);
 }
 
-select{
-width:100%;
-padding:8px;
-font-size:15px;
-}
-
 input{
 width:100%;
-padding:8px;
+padding:10px;
 font-size:15px;
 margin-bottom:10px;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+select{
+width:100%;
+padding:10px;
+font-size:15px;
+border-radius:5px;
 }
 
 button{
@@ -60,6 +63,11 @@ background:#6c757d;
 background:#545b62;
 }
 
+.sucesso{
+color:green;
+font-size:14px;
+}
+
 </style>
 
 </head>
@@ -70,6 +78,11 @@ background:#545b62;
 
 <h2>Disciplinas</h2>
 
+<!-- MENSAGEM -->
+{% if sucesso %}
+<p class="sucesso">Disciplina cadastrada com sucesso!</p>
+{% endif %}
+
 <!-- CADASTRAR DISCIPLINA -->
 <form method="POST">
 <input type="text" name="nova_disciplina" placeholder="Digite a disciplina" required>
@@ -78,22 +91,19 @@ background:#545b62;
 
 <br>
 
-<!-- LISTA DISCIPLINAS -->
-<form method="GET">
-
-<select name="disciplina" size="8">
+<!-- LISTA -->
+<select size="8">
 {% for d in disciplinas %}
-<option value="{{ d }}">{{ d }}</option>
+<option>{{ d }}</option>
 {% endfor %}
 </select>
 
-<button type="submit">Selecionar</button>
+<br>
 
-</form>
-
-<a href="/menu">
-<button class="voltar">Voltar</button>
-</a>
+<!-- BOTÕES -->
+<button onclick="window.location.href='/menu'" class="voltar">
+Voltar
+</button>
 
 </div>
 
