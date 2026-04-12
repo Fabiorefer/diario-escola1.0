@@ -41,18 +41,19 @@ text-align:center;
 }
 
 select,input{
-padding:6px;
-margin:3px;
+padding:8px;
+margin:5px;
 }
 
 textarea{
 width:100%;
 padding:10px;
 font-family: Arial;
+border-radius:5px;
 }
 
 button{
-padding:8px 15px;
+padding:10px;
 margin-top:10px;
 border:none;
 background:#2c7be5;
@@ -99,19 +100,19 @@ Conteúdo salvo com sucesso
 <form method="GET">
 
 Disciplina
-<select name="disciplina" onchange="this.form.submit()">
+<select name="disciplina">
 <option value="">Selecione</option>
 
 {% for d in disciplinas %}
-<option value="{{ d }}" {% if disciplina==d %}selected{% endif %}>
-{{ d }}
+<option value="{{ d.disciplina }}" {% if disciplina==d.disciplina %}selected{% endif %}>
+{{ d.disciplina }}
 </option>
 {% endfor %}
 
 </select>
 
 Turma
-<select name="turma" onchange="this.form.submit()">
+<select name="turma">
 <option value="">Selecione</option>
 
 {% for t in turmas %}
@@ -123,7 +124,7 @@ Turma
 </select>
 
 Data
-<input type="date" name="data" value="{{ data }}">
+<input type="date" name="data" value="{{ data }}" required>
 
 <button type="submit">Carregar</button>
 
@@ -164,10 +165,10 @@ Data
 <th>Conteúdo</th>
 </tr>
 
-{% for data, conteudo in conteudos %}
+{% for c in conteudos %}
 <tr>
-<td style="width:120px">{{ data }}</td>
-<td>{{ conteudo }}</td>
+<td style="width:120px">{{ c.data }}</td>
+<td>{{ c.conteudo }}</td>
 </tr>
 {% endfor %}
 
@@ -175,9 +176,9 @@ Data
 
 <br>
 
-<a href="/menu">
-<button class="voltar">Voltar</button>
-</a>
+<button onclick="window.location.href='/menu'" class="voltar">
+Voltar
+</button>
 
 </div>
 
