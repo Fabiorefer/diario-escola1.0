@@ -1,48 +1,50 @@
-from flask import Flask, render_template, request, redirect, session, url_for, send_file
-import psycopg2
-import os
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
+from flask import Flask, render_template, request, redirect, session, url_for
+from banco import get_db
 
 app = Flask(__name__)
 app.secret_key = "diario_secret"
 
 # ===============================
-# BANCO (POSTGRES - SUPABASE)
-# ===============================
-def conectar():
-    return psycopg2.connect(
-        host="db.xxx.supabase.co",
-        database="postgres",
-        user="postgres",
-        password="SUA_SENHA",
-        port=5432
-    )
-
-# ===============================
 # PROTEÇÃO LOGIN
 # ===============================
 def verificar_login():
-    if "usuario" not in session:
-        return False
-    return True
+    return "usuario" in session
 
 # ===============================
 # LOGIN
 # ===============================
 @app.route("/", methods=["GET","POST"])
 def login():
+
     if request.method == "POST":
-        session["usuario"] = request.form["usuario"]
-        return redirect("/menu")
+
+        usuario = request.form["usuario"]
+        senha = request.form["senha"]
+
+        db = get_db()
+
+        prof = db.professores.find_one({
+            "usuario": usuario,
+            "senha": senha
+        })
+
+        if prof:
+            session["usuario"] = usuario
+            return redirect("/menu")
+        else:
+            return render_template("login.html", erro="Usuário ou senha inválidos")
+
     return render_template("login.html")
 
+# ===============================
+# MENU
+# ===============================
 @app.route("/menu")
 def menu():
+
     if not verificar_login():
         return redirect("/")
+
     return render_template("index.html")
 
 # ===============================
@@ -54,25 +56,23 @@ def disciplinas():
     if not verificar_login():
         return redirect("/")
 
+    db = get_db()
     professor = session["usuario"]
 
-    conn = conectar()
-    c = conn.cursor()
-
     if request.method == "POST":
+
         nova = request.form.get("nova_disciplina")
+
         if nova:
-            c.execute("""
-            INSERT INTO disciplinas (professor,disciplina)
-            VALUES (%s,%s)
-            """,(professor,nova))
-            conn.commit()
+            db.disciplinas.insert_one({
+                "professor": professor,
+                "disciplina": nova
+            })
 
-    c.execute("SELECT disciplina FROM disciplinas WHERE professor=%s",(professor,))
-    lista = [x[0] for x in c.fetchall()]
+    lista = db.disciplinas.find({"professor": professor})
+    disciplinas = [d["disciplina"] for d in lista]
 
-    conn.close()
-    return render_template("disciplinas.html", disciplinas=lista)
+    return render_template("disciplinas.html", disciplinas=disciplinas)
 
 # ===============================
 # ALUNOS
@@ -83,42 +83,31 @@ def alunos():
     if not verificar_login():
         return redirect("/")
 
+    db = get_db()
     professor = session["usuario"]
 
-    conn = conectar()
-    c = conn.cursor()
-
     if request.method == "POST":
-        disciplina = request.form["disciplina"]
-        turma = request.form["turma"]
-        aluno = request.form["aluno"]
 
-        c.execute("""
-        INSERT INTO alunos (professor,disciplina,turma,aluno)
-        VALUES (%s,%s,%s,%s)
-        """,(professor,disciplina,turma,aluno))
+        db.alunos.insert_one({
+            "professor": professor,
+            "disciplina": request.form["disciplina"],
+            "turma": request.form["turma"],
+            "aluno": request.form["aluno"]
+        })
 
-        conn.commit()
+    disciplinas = list(db.disciplinas.find({"professor": professor}))
+    turmas = db.alunos.distinct("turma", {"professor": professor})
+    alunos = list(db.alunos.find({"professor": professor, "aluno": {"$ne": ""}}))
 
-    c.execute("SELECT disciplina FROM disciplinas WHERE professor=%s",(professor,))
-    disciplinas = [x[0] for x in c.fetchall()]
-
-    c.execute("SELECT DISTINCT turma FROM alunos WHERE professor=%s",(professor,))
-    turmas = [x[0] for x in c.fetchall()]
-
-    c.execute("""
-    SELECT disciplina,turma,aluno
-    FROM alunos
-    WHERE professor=%s AND aluno!=''
-    """,(professor,))
-    lista = c.fetchall()
-
-    conn.close()
-
-    return render_template("alunos.html", disciplinas=disciplinas, turmas=turmas, alunos=lista)
+    return render_template(
+        "alunos.html",
+        disciplinas=disciplinas,
+        turmas=turmas,
+        alunos=alunos
+    )
 
 # ===============================
-# PRESENÇA (CORRIGIDO)
+# PRESENÇA
 # ===============================
 @app.route("/presenca", methods=["GET","POST"])
 def presenca():
@@ -126,42 +115,45 @@ def presenca():
     if not verificar_login():
         return redirect("/")
 
+    db = get_db()
     professor = session["usuario"]
 
     disciplina = request.values.get("disciplina")
     turma = request.values.get("turma")
     data = request.values.get("data")
 
-    conn = conectar()
-    c = conn.cursor()
+    alunos = []
 
-    c.execute("""
-    SELECT aluno FROM alunos
-    WHERE professor=%s AND disciplina=%s AND turma=%s AND aluno!=''
-    ORDER BY aluno
-    """,(professor,disciplina,turma))
-
-    alunos = [x[0] for x in c.fetchall()]
+    if disciplina and turma:
+        alunos = list(db.alunos.find({
+            "professor": professor,
+            "disciplina": disciplina,
+            "turma": turma
+        }))
 
     if request.method == "POST":
 
-        c.execute("""
-        DELETE FROM presenca
-        WHERE professor=%s AND disciplina=%s AND turma=%s AND data=%s
-        """,(professor,disciplina,turma,data))
+        db.presenca.delete_many({
+            "professor": professor,
+            "disciplina": disciplina,
+            "turma": turma,
+            "data": data
+        })
 
         for aluno in alunos:
-            valor = request.form.get("presenca_"+aluno) or "F"
 
-            c.execute("""
-            INSERT INTO presenca
-            (professor,disciplina,turma,data,aluno,valor)
-            VALUES (%s,%s,%s,%s,%s,%s)
-            """,(professor,disciplina,turma,data,aluno,valor))
+            nome = aluno["aluno"]
+            valor = request.form.get("presenca_"+nome) or "F"
 
-        conn.commit()
+            db.presenca.insert_one({
+                "professor": professor,
+                "disciplina": disciplina,
+                "turma": turma,
+                "data": data,
+                "aluno": nome,
+                "valor": valor
+            })
 
-    conn.close()
     return render_template("presenca.html", alunos=alunos)
 
 # ===============================
@@ -173,43 +165,54 @@ def notas():
     if not verificar_login():
         return redirect("/")
 
+    db = get_db()
     professor = session["usuario"]
 
     disciplina = request.values.get("disciplina")
     turma = request.values.get("turma")
     bimestre = request.values.get("bimestre")
 
-    conn = conectar()
-    c = conn.cursor()
+    alunos = []
 
-    c.execute("""
-    SELECT aluno FROM alunos
-    WHERE professor=%s AND disciplina=%s AND turma=%s
-    """,(professor,disciplina,turma))
-
-    alunos = [x[0] for x in c.fetchall()]
+    if disciplina and turma:
+        alunos = list(db.alunos.find({
+            "professor": professor,
+            "disciplina": disciplina,
+            "turma": turma
+        }))
 
     if request.method == "POST":
 
-        c.execute("""
-        DELETE FROM notas
-        WHERE professor=%s AND disciplina=%s AND turma=%s AND bimestre=%s
-        """,(professor,disciplina,turma,bimestre))
+        db.notas.delete_many({
+            "professor": professor,
+            "disciplina": disciplina,
+            "turma": turma,
+            "bimestre": bimestre
+        })
 
         for aluno in alunos:
-            p1 = request.form.get("p1_"+aluno) or 0
-            p2 = request.form.get("p2_"+aluno) or 0
 
-            c.execute("""
-            INSERT INTO notas
-            (professor,disciplina,turma,bimestre,aluno,p1,p2)
-            VALUES (%s,%s,%s,%s,%s,%s,%s)
-            """,(professor,disciplina,turma,bimestre,aluno,p1,p2))
+            nome = aluno["aluno"]
 
-        conn.commit()
+            db.notas.insert_one({
+                "professor": professor,
+                "disciplina": disciplina,
+                "turma": turma,
+                "bimestre": bimestre,
+                "aluno": nome,
+                "p1": request.form.get("p1_"+nome) or 0,
+                "p2": request.form.get("p2_"+nome) or 0
+            })
 
-    conn.close()
     return render_template("notas.html", alunos=alunos)
+
+# ===============================
+# LOGOUT
+# ===============================
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
 
 # ===============================
 # RODAR
