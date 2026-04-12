@@ -262,7 +262,12 @@ def notas():
     turma = request.values.get("turma")
     bimestre = request.values.get("bimestre")
 
+    disciplinas = list(db.disciplinas.find({"professor": professor}))
+    turmas = db.turmas.distinct("turma", {"professor": professor})
+
     alunos = []
+    notas_dict = {}
+    salvo = False
 
     if disciplina and turma:
         alunos = list(db.alunos.find({
@@ -271,6 +276,20 @@ def notas():
             "turma": turma
         }))
 
+    # carregar notas
+    if disciplina and turma and bimestre:
+
+        lista = db.notas.find({
+            "professor": professor,
+            "disciplina": disciplina,
+            "turma": turma,
+            "bimestre": bimestre
+        })
+
+        for n in lista:
+            notas_dict[n["aluno"]] = n
+
+    # salvar
     if request.method == "POST":
 
         db.notas.delete_many({
@@ -280,9 +299,9 @@ def notas():
             "bimestre": bimestre
         })
 
-        for aluno in alunos:
+        for a in alunos:
 
-            nome = aluno["aluno"]
+            nome = a["aluno"]
 
             db.notas.insert_one({
                 "professor": professor,
@@ -291,10 +310,25 @@ def notas():
                 "bimestre": bimestre,
                 "aluno": nome,
                 "p1": request.form.get("p1_"+nome) or 0,
-                "p2": request.form.get("p2_"+nome) or 0
+                "p2": request.form.get("p2_"+nome) or 0,
+                "trab": request.form.get("trab_"+nome) or 0,
+                "part": request.form.get("part_"+nome) or 0,
+                "tarefa": request.form.get("tarefa_"+nome) or 0
             })
 
-    return render_template("notas.html", alunos=alunos)
+        salvo = True
+
+    return render_template(
+        "notas.html",
+        disciplinas=disciplinas,
+        turmas=turmas,
+        alunos=alunos,
+        notas=notas_dict,
+        disciplina=disciplina,
+        turma=turma,
+        bimestre=bimestre,
+        salvo=salvo
+    )
 
 # ===============================
 # LOGOUT
