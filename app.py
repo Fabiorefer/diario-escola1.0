@@ -179,15 +179,23 @@ def presenca():
     turma = request.values.get("turma")
     data = request.values.get("data")
 
+    # carregar disciplinas e turmas
+    disciplinas = list(db.disciplinas.find({"professor": professor}))
+    turmas = db.turmas.distinct("turma", {"professor": professor})
+
     alunos = []
+    presencas = {}
+    salvo = False
 
     if disciplina and turma:
+
         alunos = list(db.alunos.find({
             "professor": professor,
             "disciplina": disciplina,
             "turma": turma
         }))
 
+    # SALVAR
     if request.method == "POST":
 
         db.presenca.delete_many({
@@ -197,9 +205,9 @@ def presenca():
             "data": data
         })
 
-        for aluno in alunos:
+        for a in alunos:
 
-            nome = aluno["aluno"]
+            nome = a["aluno"]
             valor = request.form.get("presenca_"+nome) or "F"
 
             db.presenca.insert_one({
@@ -211,7 +219,32 @@ def presenca():
                 "valor": valor
             })
 
-    return render_template("presenca.html", alunos=alunos)
+        salvo = True
+
+    # CARREGAR PRESENÇA
+    if disciplina and turma and data:
+
+        lista = db.presenca.find({
+            "professor": professor,
+            "disciplina": disciplina,
+            "turma": turma,
+            "data": data
+        })
+
+        for p in lista:
+            presencas[p["aluno"]] = p["valor"]
+
+    return render_template(
+        "presenca.html",
+        disciplinas=disciplinas,
+        turmas=turmas,
+        disciplina=disciplina,
+        turma=turma,
+        data=data,
+        alunos=alunos,
+        presencas=presencas,
+        salvo=salvo
+    )
 
 # ===============================
 # NOTAS
