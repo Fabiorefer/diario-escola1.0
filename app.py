@@ -330,6 +330,85 @@ def notas():
         salvo=salvo
     )
 
+#================================
+#CONTEUDOS
+#================================
+@app.route("/conteudos", methods=["GET","POST"])
+def conteudos():
+
+    if not verificar_login():
+        return redirect("/")
+
+    db = get_db()
+    professor = session["usuario"]
+
+    disciplina = request.values.get("disciplina")
+    turma = request.values.get("turma")
+    data = request.values.get("data")
+
+    disciplinas = list(db.disciplinas.find({"professor": professor}))
+    turmas = db.turmas.distinct("turma", {"professor": professor})
+
+    conteudo_atual = ""
+    lista_conteudos = []
+    salvo = False
+
+    # carregar conteúdo atual
+    if disciplina and turma and data:
+
+        c = db.conteudos.find_one({
+            "professor": professor,
+            "disciplina": disciplina,
+            "turma": turma,
+            "data": data
+        })
+
+        if c:
+            conteudo_atual = c["conteudo"]
+
+    # salvar
+    if request.method == "POST":
+
+        conteudo = request.form.get("conteudo")
+
+        db.conteudos.delete_many({
+            "professor": professor,
+            "disciplina": disciplina,
+            "turma": turma,
+            "data": data
+        })
+
+        db.conteudos.insert_one({
+            "professor": professor,
+            "disciplina": disciplina,
+            "turma": turma,
+            "data": data,
+            "conteudo": conteudo
+        })
+
+        salvo = True
+
+    # listar conteúdos
+    if disciplina and turma:
+
+        lista_conteudos = list(db.conteudos.find({
+            "professor": professor,
+            "disciplina": disciplina,
+            "turma": turma
+        }).sort("data", -1))
+
+    return render_template(
+        "conteudos.html",
+        disciplinas=disciplinas,
+        turmas=turmas,
+        disciplina=disciplina,
+        turma=turma,
+        data=data,
+        conteudo_atual=conteudo_atual,
+        conteudos=lista_conteudos,
+        salvo=salvo
+    )
+
 # ===============================
 # LOGOUT
 # ===============================
