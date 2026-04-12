@@ -409,6 +409,93 @@ def conteudos():
         salvo=salvo
     )
 
+#================================
+#RELATÓRIOS
+#================================
+@app.route("/relatorio_pdf")
+def relatorio_pdf():
+
+    if not verificar_login():
+        return redirect("/")
+
+    db = get_db()
+    professor = session["usuario"]
+
+    disciplina = request.args.get("disciplina")
+    turma = request.args.get("turma")
+    bimestre = request.args.get("bimestre")
+
+    styles = getSampleStyleSheet()
+    elementos = []
+
+    elementos.append(Paragraph(f"Professor: {professor}", styles['Heading2']))
+    elementos.append(Paragraph(f"Disciplina: {disciplina}", styles['Normal']))
+    elementos.append(Paragraph(f"Turma: {turma}", styles['Normal']))
+    elementos.append(Paragraph(f"Bimestre: {bimestre}", styles['Normal']))
+    elementos.append(Spacer(1,12))
+
+    dados = [["Aluno","P1","P2","Trab","Part","Tarefa","Faltas","Média"]]
+
+    notas = list(db.notas.find({
+        "professor": professor,
+        "disciplina": disciplina,
+        "turma": turma,
+        "bimestre": bimestre
+    }))
+
+    for n in notas:
+
+        aluno = n["aluno"]
+
+        p1 = float(n.get("p1",0))
+        p2 = float(n.get("p2",0))
+        trab = float(n.get("trab",0))
+        part = float(n.get("part",0))
+        tarefa = float(n.get("tarefa",0))
+
+        # calcular faltas
+        faltas = db.presenca.count_documents({
+            "professor": professor,
+            "disciplina": disciplina,
+            "turma": turma,
+            "aluno": aluno,
+            "valor": "F"
+        })
+
+        media = (
+            (p1*0.3)+
+            (p2*0.3)+
+            (trab*0.1333)+
+            (part*0.1333)+
+            (tarefa*0.1333)
+        )
+
+        dados.append([
+            aluno, p1, p2, trab, part, tarefa,
+            faltas,
+            round(media,1)
+        ])
+
+    tabela = Table(dados)
+    tabela.setStyle(TableStyle([
+        ('BACKGROUND',(0,0),(-1,0),colors.grey),
+        ('GRID',(0,0),(-1,-1),1,colors.black),
+        ('FONTSIZE',(0,0),(-1,-1),8)
+    ]))
+
+    elementos.append(tabela)
+
+    caminho = "relatorio.pdf"
+
+    doc = SimpleDocTemplate(caminho, pagesize=A4)
+    doc.build(elementos)
+
+    return send_file(
+        caminho,
+        as_attachment=True,
+        download_name="Relatorio.pdf"
+    )
+
 # ===============================
 # LOGOUT
 # ===============================
