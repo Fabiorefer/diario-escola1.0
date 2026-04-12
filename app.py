@@ -93,6 +93,8 @@ def alunos():
     db = get_db()
     professor = session["usuario"]
 
+    sucesso = False
+
     if request.method == "POST":
 
         db.alunos.insert_one({
@@ -102,6 +104,8 @@ def alunos():
             "aluno": request.form["aluno"]
         })
 
+        sucesso = True
+
     disciplinas = list(db.disciplinas.find({"professor": professor}))
     turmas = db.alunos.distinct("turma", {"professor": professor})
     alunos = list(db.alunos.find({"professor": professor, "aluno": {"$ne": ""}}))
@@ -110,7 +114,8 @@ def alunos():
         "alunos.html",
         disciplinas=disciplinas,
         turmas=turmas,
-        alunos=alunos
+        alunos=alunos,
+        sucesso=sucesso
     )
 
 # ===============================
