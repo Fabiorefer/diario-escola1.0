@@ -39,12 +39,12 @@ background:#f1f1f1;
 }
 
 select,input{
-padding:6px;
-margin:3px;
+padding:8px;
+margin:5px;
 }
 
 button{
-padding:8px 15px;
+padding:10px;
 margin-top:10px;
 border:none;
 background:#2c7be5;
@@ -93,8 +93,8 @@ Disciplina
 <select name="disciplina" required>
 <option value="">Selecione</option>
 {% for d in disciplinas %}
-<option value="{{ d }}" {% if disciplina == d %}selected{% endif %}>
-{{ d }}
+<option value="{{ d.disciplina }}" {% if disciplina == d.disciplina %}selected{% endif %}>
+{{ d.disciplina }}
 </option>
 {% endfor %}
 </select>
@@ -135,34 +135,30 @@ Data
 <th>Falta</th>
 </tr>
 
-{% for aluno in alunos %}
+{% for a in alunos %}
 <tr>
 
 <td style="text-align:left">
-{{ aluno }}
+{{ a.aluno }}
 </td>
 
 <td>
 <input 
 type="radio"
-name="presenca_{{ loop.index }}"
+name="presenca_{{ a.aluno }}"
 value="P"
-required
-{% if presencas and presencas.get(aluno) == "P" %}checked{% endif %}
+{% if presencas and presencas.get(a.aluno) == "P" %}checked{% endif %}
 >
 </td>
 
 <td>
 <input 
 type="radio"
-name="presenca_{{ loop.index }}"
+name="presenca_{{ a.aluno }}"
 value="F"
-required
-{% if presencas and presencas.get(aluno) == "F" %}checked{% endif %}
+{% if presencas and presencas.get(a.aluno) == "F" %}checked{% endif %}
 >
 </td>
-
-<input type="hidden" name="aluno_{{ loop.index }}" value="{{ aluno }}">
 
 </tr>
 {% endfor %}
@@ -178,9 +174,9 @@ required
 
 <br>
 
-<a href="/menu">
-<button class="voltar">Voltar</button>
-</a>
+<button onclick="window.location.href='/menu'" class="voltar">
+Voltar
+</button>
 
 </div>
 
