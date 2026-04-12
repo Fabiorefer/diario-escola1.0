@@ -81,6 +81,51 @@ def disciplinas():
         sucesso=sucesso
     )
 
+#================================
+#TURMAS
+#================================
+@app.route("/turmas", methods=["GET","POST"])
+def turmas():
+
+    if not verificar_login():
+        return redirect("/")
+
+    db = get_db()
+    professor = session["usuario"]
+
+    sucesso = False
+
+    if request.method == "POST":
+
+        disciplina = request.form["disciplina"]
+        turma = request.form["turma"]
+
+        # evita duplicar turma
+        existe = db.turmas.find_one({
+            "professor": professor,
+            "disciplina": disciplina,
+            "turma": turma
+        })
+
+        if not existe:
+            db.turmas.insert_one({
+                "professor": professor,
+                "disciplina": disciplina,
+                "turma": turma
+            })
+            sucesso = True
+
+    disciplinas = list(db.disciplinas.find({"professor": professor}))
+
+    turmas = list(db.turmas.find({"professor": professor}))
+
+    return render_template(
+        "turmas.html",
+        disciplinas=disciplinas,
+        turmas=turmas,
+        sucesso=sucesso
+    )
+
 # ===============================
 # ALUNOS
 # ===============================
