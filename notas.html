@@ -86,13 +86,13 @@ background:#f8f9fa;
 
 <script>
 
-function calcularMedia(linha){
+function calcularMedia(nome){
 
-let p1 = parseFloat(document.getElementById("p1_"+linha).value) || 0
-let p2 = parseFloat(document.getElementById("p2_"+linha).value) || 0
-let trab = parseFloat(document.getElementById("trab_"+linha).value) || 0
-let part = parseFloat(document.getElementById("part_"+linha).value) || 0
-let tarefa = parseFloat(document.getElementById("tarefa_"+linha).value) || 0
+let p1 = parseFloat(document.getElementById("p1_"+nome).value) || 0
+let p2 = parseFloat(document.getElementById("p2_"+nome).value) || 0
+let trab = parseFloat(document.getElementById("trab_"+nome).value) || 0
+let part = parseFloat(document.getElementById("part_"+nome).value) || 0
+let tarefa = parseFloat(document.getElementById("tarefa_"+nome).value) || 0
 
 let media =
 (p1 * 0.3) +
@@ -101,7 +101,7 @@ let media =
 (part * 0.1333) +
 (tarefa * 0.1333)
 
-document.getElementById("media_"+linha).innerHTML = media.toFixed(1)
+document.getElementById("media_"+nome).innerHTML = media.toFixed(1)
 
 }
 
@@ -124,18 +124,18 @@ Notas salvas com sucesso
 <form method="GET">
 
 Disciplina
-<select name="disciplina" onchange="this.form.submit()">
+<select name="disciplina">
 <option value="">Selecione</option>
 
 {% for d in disciplinas %}
-<option value="{{ d }}" {% if disciplina==d %}selected{% endif %}>
-{{ d }}
+<option value="{{ d.disciplina }}" {% if disciplina==d.disciplina %}selected{% endif %}>
+{{ d.disciplina }}
 </option>
 {% endfor %}
 </select>
 
 Turma
-<select name="turma" onchange="this.form.submit()">
+<select name="turma">
 <option value="">Selecione</option>
 
 {% for t in turmas %}
@@ -182,52 +182,47 @@ Bimestre
 <th>Média</th>
 </tr>
 
-{% for aluno in alunos %}
+{% for a in alunos %}
 <tr>
 
-<td style="text-align:left">{{ aluno }}</td>
+<td style="text-align:left">{{ a.aluno }}</td>
 
 <td>
-<input type="number" step="0.1" min="0" max="10"
-id="p1_{{loop.index}}"
-name="p1_{{ aluno }}"
-value="{{ notas[aluno].p1 if aluno in notas else '' }}"
-onkeyup="calcularMedia({{loop.index}})">
+<input type="number" step="0.1" id="p1_{{a.aluno}}"
+name="p1_{{ a.aluno }}"
+value="{{ notas.get(a.aluno, {}).get('p1','') }}"
+onkeyup="calcularMedia('{{a.aluno}}')">
 </td>
 
 <td>
-<input type="number" step="0.1" min="0" max="10"
-id="p2_{{loop.index}}"
-name="p2_{{ aluno }}"
-value="{{ notas[aluno].p2 if aluno in notas else '' }}"
-onkeyup="calcularMedia({{loop.index}})">
+<input type="number" step="0.1" id="p2_{{a.aluno}}"
+name="p2_{{ a.aluno }}"
+value="{{ notas.get(a.aluno, {}).get('p2','') }}"
+onkeyup="calcularMedia('{{a.aluno}}')">
 </td>
 
 <td>
-<input type="number" step="0.1" min="0" max="10"
-id="trab_{{loop.index}}"
-name="trab_{{ aluno }}"
-value="{{ notas[aluno].trab if aluno in notas else '' }}"
-onkeyup="calcularMedia({{loop.index}})">
+<input type="number" step="0.1" id="trab_{{a.aluno}}"
+name="trab_{{ a.aluno }}"
+value="{{ notas.get(a.aluno, {}).get('trab','') }}"
+onkeyup="calcularMedia('{{a.aluno}}')">
 </td>
 
 <td>
-<input type="number" step="0.1" min="0" max="10"
-id="part_{{loop.index}}"
-name="part_{{ aluno }}"
-value="{{ notas[aluno].part if aluno in notas else '' }}"
-onkeyup="calcularMedia({{loop.index}})">
+<input type="number" step="0.1" id="part_{{a.aluno}}"
+name="part_{{ a.aluno }}"
+value="{{ notas.get(a.aluno, {}).get('part','') }}"
+onkeyup="calcularMedia('{{a.aluno}}')">
 </td>
 
 <td>
-<input type="number" step="0.1" min="0" max="10"
-id="tarefa_{{loop.index}}"
-name="tarefa_{{ aluno }}"
-value="{{ notas[aluno].tarefa if aluno in notas else '' }}"
-onkeyup="calcularMedia({{loop.index}})">
+<input type="number" step="0.1" id="tarefa_{{a.aluno}}"
+name="tarefa_{{ a.aluno }}"
+value="{{ notas.get(a.aluno, {}).get('tarefa','') }}"
+onkeyup="calcularMedia('{{a.aluno}}')">
 </td>
 
-<td class="media" id="media_{{loop.index}}">
+<td class="media" id="media_{{a.aluno}}">
 -
 </td>
 
@@ -235,7 +230,7 @@ onkeyup="calcularMedia({{loop.index}})">
 
 <script>
 window.addEventListener("load", function(){
-calcularMedia({{loop.index}})
+calcularMedia("{{a.aluno}}")
 })
 </script>
 
@@ -253,9 +248,9 @@ calcularMedia({{loop.index}})
 
 <br>
 
-<a href="/menu">
-<button class="voltar">Voltar</button>
-</a>
+<button onclick="window.location.href='/menu'" class="voltar">
+Voltar
+</button>
 
 </div>
 
