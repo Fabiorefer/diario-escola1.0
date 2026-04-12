@@ -59,6 +59,8 @@ def disciplinas():
     db = get_db()
     professor = session["usuario"]
 
+    sucesso = False
+
     if request.method == "POST":
 
         nova = request.form.get("nova_disciplina")
@@ -68,11 +70,16 @@ def disciplinas():
                 "professor": professor,
                 "disciplina": nova
             })
+            sucesso = True
 
     lista = db.disciplinas.find({"professor": professor})
     disciplinas = [d["disciplina"] for d in lista]
 
-    return render_template("disciplinas.html", disciplinas=disciplinas)
+    return render_template(
+        "disciplinas.html",
+        disciplinas=disciplinas,
+        sucesso=sucesso
+    )
 
 # ===============================
 # ALUNOS
