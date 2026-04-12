@@ -20,7 +20,7 @@ width:340px;
 margin:auto;
 margin-top:40px;
 padding:20px;
-border-radius:8px;
+border-radius:10px;
 box-shadow:0 0 10px rgba(0,0,0,0.2);
 }
 
@@ -44,6 +44,14 @@ button:hover{
 background:#1a5ed8;
 }
 
+.logout{
+background:#dc3545;
+}
+
+.logout:hover{
+background:#b02a37;
+}
+
 </style>
 
 </head>
@@ -56,33 +64,39 @@ background:#1a5ed8;
 
 <h3>Bem-vindo, {{ session.usuario }}</h3>
 
-<a href="/disciplinas">
-<button>Disciplinas</button>
-</a>
+<button onclick="window.location.href='/disciplinas'">
+Disciplinas
+</button>
 
-<a href="/turmas">
-<button>Turmas</button>
-</a>
+<button onclick="window.location.href='/turmas'">
+Turmas
+</button>
 
-<a href="/alunos">
-<button>Alunos</button>
-</a>
+<button onclick="window.location.href='/alunos'">
+Alunos
+</button>
 
-<a href="/presenca">
-<button>Presença</button>
-</a>
+<button onclick="window.location.href='/presenca'">
+Presença
+</button>
 
-<a href="/notas">
-<button>Notas</button>
-</a>
+<button onclick="window.location.href='/notas'">
+Notas
+</button>
 
-<a href="/conteudos">
-<button>Conteúdos</button>
-</a>
+<button onclick="window.location.href='/conteudos'">
+Conteúdos
+</button>
 
-<a href="/relatorio">
-<button>Relatório PDF</button>
-</a>
+<button onclick="window.location.href='/relatorio'">
+Relatório PDF
+</button>
+
+<hr>
+
+<button onclick="window.location.href='/logout'" class="logout">
+Sair
+</button>
 
 </div>
 
